@@ -107,6 +107,7 @@ select.field{appearance:none;-webkit-appearance:none;}
 .drop-item .di{flex:1;min-width:0;font-size:12.5px;}
 .drop-item .di small{color:var(--mut);display:block;margin-top:2px;}
 .fcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 12px;margin-bottom:10px;display:flex;gap:11px;}
+.tcell{flex:0 0 56px;font-weight:800;font-size:12px;color:var(--pur);padding-top:2px;line-height:1.3;}
 .fav{background:none;border:0;font-size:19px;cursor:pointer;color:#cfcfd6;padding:0;line-height:1;margin-left:auto;}
 .fav.on{color:#FFB300;}
 .meal{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 12px;margin-bottom:8px;}
@@ -127,6 +128,7 @@ select.field{appearance:none;-webkit-appearance:none;}
 </header>
 <main>
   <section id="lineup"></section>
+  <section id="times" style="display:none"></section>
   <section id="heat" style="display:none"></section>
   <section id="plan" style="display:none"></section>
   <section id="map" style="display:none"></section>
@@ -139,6 +141,7 @@ select.field{appearance:none;-webkit-appearance:none;}
 <div id="intro" class="overlay" style="display:none"></div>
 <nav class="tabs">
   <button data-tab="lineup" class="on"><svg class="ic" viewBox="0 0 24 24"><path d="M9 17V6l10-2v9"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="15.5" r="2.5"/></svg>Lineup</button>
+  <button data-tab="times"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>Times</button>
   <button data-tab="heat"><svg class="ic" viewBox="0 0 24 24"><path d="M5 21V12M10 21V5M15 21v-6M20 21v-9"/></svg>Heat</button>
   <button data-tab="plan"><svg class="ic" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg>By Day</button>
   <button data-tab="map"><svg class="ic" viewBox="0 0 24 24"><path d="M12 21s6.5-5.5 6.5-11a6.5 6.5 0 1 0-13 0c0 5.5 6.5 11 6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg>Map</button>
@@ -182,6 +185,11 @@ let filter={q:"",tier:"all",venue:"all",goOnly:false,seen:false};
 let heatMode="rating";
 let planView="all";
 let surprisePick=null;
+let attend=new Set(L("shmb_attend",[]));
+let adays=L("shmb_adays",{});
+let exExpanded=new Set();
+const SCHED=[["Thu", "12:00", "Data Mine", "Banzai Art Battles", "Workshop, Family Friendly, Performance, Art, Craft, Kids, Comedy"], ["Thu", "13:00", "Data Mine", "Dead Pixels Gaming Caravan", "Workshop, Family Friendly, Kids, Free"], ["Thu", "15:00", "The Meditation Space", "A Guided Ceremonial Breathwork Session with Pippa Downs", "Workshop, Wellbeing, Free"], ["Thu", "15:00", "The Meadow Garden", "The Meadow Opening Ceremony with Creuynni", "Family Friendly, Performance, Participation"], ["Thu", "15:15", "The Yoga Space", "Yoga Nidra with Morgane Magyar", "Workshop, Wellbeing, Free"], ["Thu", "16:00", "Back A Yard", "Back A Yard Family Welcome", "Music, Reggae, Dub, Dancehall"], ["Thu", "16:30", "The Meadow Garden", "Tao Yin Arts with Jason and Doe", "Workshop, Wellbeing, Free"], ["Thu", "16:45", "The Meditation Space", "Hypnotherapy with Josie Allen", "Workshop, Wellbeing, Free"], ["Thu", "17:00", "The Next Stage", "DJ Steffiepants", "Music"], ["Thu", "17:00", "The Common", "Lighting of the Children's Fire with Sam Moyo", "Family Friendly, Performance, Participation"], ["Thu", "17:00", "The Family Yurt", "Rub A Dub Tubs", "Family Friendly"], ["Thu", "17:00", "Roots Corner", "Roots Corner Family", "Music, Reggae, Dub, African"], ["Thu", "17:15", "The Yoga Space", "Partner Yoga with Carrie Brassley", "Workshop, Wellbeing, Free"], ["Thu", "17:30", "Swingamajig", "Tuxedo Junction", "Music"], ["Thu", "18:00", "The Next Stage", "MC Feline", "Music"], ["Thu", "18:00", "BUMP Rollerdisco", "Craig R Ninja", "Music, DJ Set"], ["Thu", "18:00", "Reflex", "Bichon Frise", "Music"], ["Thu", "18:00", "Back A Yard", "DJ Costa", "Music, Dance, Latin, DJ Set"], ["Thu", "18:00", "The Shambolympics", "Shambolympics Opening Party", "Music, Family Friendly, Performance, Participation"], ["Thu", "18:00", "Talu", "Bradley Taylor & Friends", "Spoken Word, Poetry"], ["Thu", "18:00", "Sibin Beag", "Failte Isteach - Welcome In", "Performance, Participation"], ["Thu", "18:30", "The Meditation Space", "Step Into Your Breath, Step Into Yourself - with Stefan Williams", "Workshop, Wellbeing"], ["Thu", "18:30", "The Meadow Garden", "Acro Yoga with Joey and Katie", "Workshop, Wellbeing, Free"], ["Thu", "19:00", "The Next Stage", "Cut A Shine", "Music, Folk"], ["Thu", "19:00", "The Yoga Space", "Reflexology for Child/Teenage Anxiety with Hayley", "Workshop, Family Friendly, Wellbeing, Free"], ["Thu", "19:00", "Sibin Beag", "Shambollox's", "Music, Rock, Folk"], ["Thu", "19:00", "Roots Corner", "Agent_K", "Music, Performance, Reggae, Electronic, Dance"], ["Thu", "19:00", "Reflex", "Neally Furtado", "Music, Disco, Latin, African"], ["Thu", "19:00", "Back A Yard", "Inda Flo", "Music, Techno, Electronic, Global Sounds"], ["Thu", "19:00", "Data Mine", "Jack Herer", "Music, Techno, Electronic, Dub"], ["Thu", "19:10", "Talu", "Nafeesa Hamid", "Music, Folk, Experimental"], ["Thu", "19:15", "BUMP Rollerdisco", "Me Miles & I", "Music, DJ Set"], ["Thu", "19:30", "Swingamajig", "The Destroyers", "Music, Folk, Punk, European"], ["Thu", "19:50", "Talu", "That God Damn Poetry Jam Presents", "Poetry"], ["Thu", "20:00", "The Wonky Cock", "The Big Campfire Singalong with Richard Lobb", "Workshop, Family Friendly, Music Making, Free"], ["Thu", "20:00", "The Family Yurt", "Stories with Danny English", "Spoken Word, Family Friendly, Performance"], ["Thu", "20:00", "Compass Presents", "Compass House Circus Cabaret", "Performance, Circus, Cabaret"], ["Thu", "20:00", "Compass Presents", "Average Joe presents... WWWTF?!", "Music, Performance, Participation, DJ Set"], ["Thu", "20:00", "Back A Yard", "Loose Sound Take-over", "Music, Reggae, Dub, Dancehall"], ["Thu", "20:00", "Data Mine", "Christy", "Music, Electronic, DJ Set"], ["Thu", "20:15", "The Meditation Space", "Sound Bath with Aya Zebrowska and Edan Sound", "Workshop, Wellbeing"], ["Thu", "20:30", "The Next Stage", "MC Feline (2)", "Music"], ["Thu", "20:30", "Swingamajig", "Phat Sam", "Music"], ["Thu", "20:30", "Roots Corner", "Aziza Jaye", "Music, Performance, Reggae"], ["Thu", "20:55", "Talu", "Sophia Lucia", "Music, Spoken Word, Poetry"], ["Thu", "21:00", "The Enchanted Woods", "Lightpainting Malarky", "Workshop, Family Friendly, Craft, Free"], ["Thu", "21:00", "The Enchanted Woods", "Shadowplay by Joe Lindley, Roger Whitham and Loura Whitham", "Family Friendly, Art, Installation"], ["Thu", "21:00", "The Next Stage", "Rumac", "Music, BSL, Rock, Folk, Experimental"], ["Thu", "21:00", "The Enchanted Woods", "Mixmaster Morris", "Music, Electronic, DJ Set"], ["Thu", "21:00", "Reflex", "Spicyivy", "Music, Disco, House, DJ Set"], ["Thu", "21:00", "Data Mine", "DRPS", "Music, Adult Content, Drum & Bass, Electronic, Jungle"], ["Thu", "21:00", "Rebel Soul", "Hana", "Music, Techno, Electronic, House"], ["Thu", "21:30", "Talu", "Georgie Jones & Friends", "Spoken Word, Poetry, BSL"], ["Thu", "21:30", "Roots Corner", "Segweh Sound", "Music"], ["Thu", "21:45", "BUMP Rollerdisco", "Park Ro", "Music, DJ Set"], ["Thu", "21:45", "Swingamajig", "Big Band of Boom", "Music"], ["Thu", "22:00", "The Next Stage", "DJ Chris Tofu", "Music"], ["Thu", "22:00", "Compass Presents", "Church of Dave Animal Rave", "Music, Family Friendly, Performance, Comedy, Participation"], ["Thu", "22:00", "Back A Yard", "Smokelife Sound System", "Music, Reggae, Dub"], ["Thu", "22:00", "Data Mine", "Ombie", "Music, Drum & Bass, DJ Set"], ["Thu", "22:15", "Rebel Soul", "Taliable", "Music, Hip-Hop, Punk"], ["Thu", "22:30", "The Next Stage", "Drag Syndrome", "Music, Performance, BSL, Cabaret"], ["Thu", "22:30", "Reflex", "George Powell", "Music, Disco, House, DJ Set"], ["Thu", "22:45", "Swingamajig", "C@ in the H@", "Music"],["Thu", "23:00", "Talu", "Akola Tambo", "Music, Dance, Latin, Global Sounds"], ["Thu", "23:00", "Roots Corner", "An Dannsa Dub", "Music"], ["Thu", "23:00", "Data Mine", "Broken Joe", "Music, Drum & Bass, Electronic, Dance"], ["Thu", "23:00", "Rebel Soul", "Inda Flo (2)", "Music, Techno, Electronic, Global Sounds"], ["Thu", "23:30", "The Next Stage", "Fizzy Gillespie", "Music, DJ Set"], ["Thu", "23:30", "Compass Presents", "DJ Business Collective", "Music, Performance, Comedy, Participation, DJ Set"], ["Thu", "23:55", "Swingamajig", "Swingamajig Allstars", "Music"], ["Thu", "00:00", "The Next Stage", "Chris Tofu, Debbralee Wells & Friends", "Music, Dance, Electro Swing"], ["Thu", "00:00", "Roots Corner", "Riesh Tafari", "Music, Reggae, Dancehall"], ["Fri", "08:00", "The Meditation Space", "Morning Meditation with Melanie Heap", "Workshop, Wellbeing, Free"], ["Fri", "08:30", "SUP Yoga & Sauna", "Sauna Botanica", "Workshop"], ["Fri", "08:45", "The Yoga Space", "Gentle Hatha Yoga with Emma Lewins", "Workshop, Wellbeing, Free"], ["Fri", "09:00", "The Family Yurt", "Wake Up Music and Movement", "Music, Family Friendly"], ["Fri", "09:00", "The Craft Area", "Tinker Station & Masquetherage", "Workshop, Craft, Additional Cost"], ["Fri", "09:00", "Talu", "Gong in 60 Minutes", "Workshop, Wellbeing, Music"], ["Fri", "09:15", "The Meditation Space", "Thrive In Your Life: Using EFT & Tapping to Enhance Your Life", "Workshop, Wellbeing"], ["Fri", "09:30", "The Craft Area", "Wild and Wandering", "Workshop, Craft"], ["Fri", "09:30", "The Craft Area", "Rush Work", "Workshop, Craft, Additional Cost"], ["Fri", "09:30", "Dance Workshops", "Ravers2Runners Warm-Up", "Workshop, Wellbeing, Movement, Free"], ["Fri", "10:00", "The Craft Area", "Yoga in the Craft Area", "Workshop"], ["Fri", "10:00", "Data Mine", "Dead Pixels Gaming Caravan", "Workshop, Family Friendly, Kids, Free"], ["Fri", "10:00", "The Craft Area", "The Nomadic Stone Company", "Workshop"], ["Fri", "10:00", "The Meadow Garden", "Stretch and Flow with Morgane Magyar", "Workshop, Wellbeing, Free"], ["Fri", "10:00", "The Library", "Mark Grist: Monster Rap Battle Workshop", "Workshop, Spoken Word, Poetry, Family Friendly"], ["Fri", "10:00", "Diaspora! The Harmony Yurt", "Zimbabwean Songs Workshop", "Workshop, Family Friendly, Music, Music Making"], ["Fri", "10:00", "The Craft Area", "Amerton Arts Studio", "Workshop, Craft, Additional Cost"], ["Fri", "10:00", "The Craft Area", "Cuttlefish Casting Silver Workshop", "Workshop, Craft, Additional Cost"], ["Fri", "10:00", "The Craft Area", "The Wheely Small Print", "Workshop, Craft, Additional Cost"], ["Fri", "10:00", "The Craft Area", "The Jewellery Workshop", "Workshop, Craft, Additional Cost"], ["Fri", "10:00", "The Craft Area", "Heartwood Rewilding Bark Containers", "Workshop, Craft, Additional Cost"], ["Fri", "10:00", "The Craft Area", "Sew In Tents", "Workshop, Craft, Additional Cost"], ["Fri", "10:00", "The Craft Area", "The Lost Treasure Silver Workshop", "Workshop, Craft, Additional Cost"], ["Fri", "10:00", "The Craft Area", "Circus Kinetica", "Workshop, Craft, Additional Cost"], ["Fri", "10:00", "Talu", "Horizontal Dreams Somatic Workshop", "Workshop, Dance"], ["Fri", "10:00", "Random Workshops", "Word Up Necklaces", "Workshop, Family Friendly, Craft, Free"], ["Fri", "10:00", "Dance Workshops", "Move Through The Body", "Workshop, Dance, Movement, Free"], ["Fri", "10:00", "The Craft Area", "Green Heart Woodland Crafts", "Workshop, Craft, Additional Cost"], ["Fri", "10:00", "The Craft Area", "Funky Furniture and Woodcraft", "Workshop, Craft, Additional Cost"], ["Fri", "10:00", "The Craft Area", "The Alternative Limb Project", "Workshop, Craft, Additional Cost"], ["Fri", "10:15", "The Yoga Space", "TRE Workshops with Emma Wise", "Workshop, Wellbeing, Free"], ["Fri", "10:30", "Diaspora! The Melody Yurt", "Bullerengue Circle", "Workshop, Music Making, Free"], ["Fri", "10:30", "The Wild Within", "Tending the Threshold: Opening the Wild Within", "Workshop, Permaculture, Wellbeing, Free"], ["Fri", "10:30", "The Peace Space", "Peace Meditation with Bethan Riach", "Workshop, Wellbeing"], ["Fri", "10:30", "The Meditation Space", "Movement Meditation with Stephen Mulley", "Workshop, Wellbeing, Free"], ["Fri", "10:30", "The Enchanted Woods", "Hannibaby by Sebastian Mayer", "Workshop, Family Friendly, Performance, Art, Craft, Kids, Puppetry"], ["Fri", "10:30", "The Craft Area", "Soulful Iron Blacksmithing", "Workshop, Craft, Additional Cost"], ["Fri", "10:30", "Chew On This", "Bake It On The Fire: Vegan Campfire Cakes with Cat", "Workshop, BSL, Cooking, Free"], ["Fri", "11:00", "Carnival Workshops", "Talking Heads", "Workshop, Family Friendly, Craft, Carnival, Free"], ["Fri", "11:00", "Carnival Workshops", "Turning Lyrics Into Looks", "Workshop, Family Friendly, Craft, Carnival, Free"], ["Fri", "11:00", "Carve Diem", "Green Woodworking Demo", "Workshop, Permaculture, Free"], ["Fri", "11:00", "The Family Yurt", "Fun Family Yoga Adventures with Anniet:Yoga", "Family Friendly"], ["Fri", "11:00", "The Enchanted Woods", "Yoga in the Enchanted Woods", "Workshop, Wellbeing, Movement, Free"], ["Fri", "11:00", "Rebel Soul", "Should We Abolish Schools?", "Workshop, Talks, Family Friendly, Kids, Activism, Wellbeing"], ["Fri", "11:00", "Dance Workshops", "Slow-Mo Breathing Flow", "Workshop, Dance, Movement, Free"], ["Fri", "11:00", "Compass Presents", "Compass House Circus Cabaret", "Performance, Circus, Cabaret"], ["Fri", "11:00", "The Craft Area", "Daemon or Doppelganger?", "Workshop, Craft"], ["Fri", "11:00", "The Craft Area", "Tez Roberts Ceramics", "Workshop, Craft, Additional Cost"], ["Fri", "11:00", "The Craft Area", "Sgraffito Tiles", "Workshop, Craft, Additional Cost"], ["Fri", "11:00", "The Community Garden", "Zentangles & Mindful Drawing: Art as a Shared Practice", "Workshop, Craft, Permaculture, Free"], ["Fri", "11:00", "Red Sea Travel Agency", "Menarche Celebration: A Creative Rite of Passage Workshop", "Workshop, Craft, Free"]];
+let schedFav=new Set(L("shmb_schedfav",[]));let timesDay="Thu";let timesStage="All";let timesQ="";let timesFav=false;
 if(dark)document.body.classList.add("dark");
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function jsq(s){return s.replace(/\\/g,"\\\\").replace(/'/g,"\\'");}
@@ -235,9 +243,9 @@ function planCard(a,clash){const d=days[a.name]||"";const tm=times[a.name]||"";
       <input type="time" class="tinput" value="${tm}" onchange="setTime('${jsq(a.name)}',this.value)">
       <button class="btn go on" onclick="toggle('${jsq(a.name)}')">&#10003;</button></div>
     ${starsRow(a.name)}</div></div>${expanded.has(a.name)?expandArea(a):""}</div>`;}
-function setTab(t){["lineup","heat","plan","map","crew","food","explore"].forEach(x=>document.getElementById(x).style.display=x===t?"":"none");
+function setTab(t){["lineup","times","heat","plan","map","crew","food","explore"].forEach(x=>document.getElementById(x).style.display=x===t?"":"none");
   document.querySelectorAll(".tabs button").forEach(b=>{b.classList.toggle("on",b.dataset.tab===t);if(b.dataset.tab===t&&b.scrollIntoView)b.scrollIntoView({inline:"center",block:"nearest"});});
-  ({heat:renderHeat,plan:renderPlan,map:renderMap,crew:renderCrew,food:renderFood,explore:renderExplore}[t]||(()=>{}))();}
+  ({times:renderTimes,heat:renderHeat,plan:renderPlan,map:renderMap,crew:renderCrew,food:renderFood,explore:renderExplore}[t]||(()=>{}))();}
 function selectVenue(v){filter.venue=v;filter.tier="all";filter.goOnly=false;filter.q="";setTab("lineup");}
 function refresh(){document.getElementById("hcount").textContent=going.size+" act"+(going.size===1?"":"s")+" marked";
   renderLineup();["heat","plan","crew"].forEach(t=>{if(document.getElementById(t).style.display!=="none")({heat:renderHeat,plan:renderPlan,crew:renderCrew}[t])();});}
@@ -272,13 +280,14 @@ function renderHeat(){const c=document.getElementById("heat");const agg=venueAgg
   c.innerHTML=mb+note+bars;}
 function todayChar(){const map={"2026-08-27":"Thu","2026-08-28":"Fri","2026-08-29":"Sat","2026-08-30":"Sun"};const d=new Date();const iso=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");return map[iso]||null;}
 function mealsLine(dc){const m=meals[dc]||{};const parts=["Breakfast","Lunch","Dinner"].map(x=>m[x]?('<b>'+x[0]+'</b> '+esc(m[x])):null).filter(Boolean);return parts.length?'<div class="mealsline">&#127860; '+parts.join(' &nbsp; ')+'</div>':'';}
+function activitiesLine(dc){var items=[...attend].filter(function(n){return adays[n]===dc;});if(!items.length)return "";return '<div class="mealsline" style="border-color:#8338EC"><b>&#127914; Activities:</b> '+items.map(esc).join(" &nbsp;&middot;&nbsp; ")+"</div>";}
 function renderPlan(){const c=document.getElementById("plan");
   const mine=ACTS.filter(a=>isGoing(a.name)).sort((x,y)=>y.tier-x.tier||x.name.localeCompare(y.name));
   const tkey=n=>{const t=times[n];if(!t)return 99999;var p=t.split(":");var h=+p[0],m=+p[1];if(h<6)h+=24;return h*60+m;};
   const tc=todayChar();
   const tbar=`<div class="modebar"><button class="chip ${planView==='all'?'all on':''}" onclick="planView='all';renderPlan()">All days</button><button class="chip ${planView==='today'?'go on':''}" onclick="planView='today';renderPlan()">Today${tc?' &middot; '+tc:''}</button></div>`;
   const banner=`<div class="note"><b>Your calendar.</b> Give each pick a day and a rough time &mdash; they sort into running order, flag clashes, and your meals show too (set them in Food). Set times land mid-August. Shortlist: ${mine.length}.</div>`;
-  if(!mine.length){c.innerHTML=tbar+banner+`<div class="empty">Nothing marked yet — hit &#43; Going on the Lineup tab.</div>`;return;}
+  if(!mine.length&&!attend.size){c.innerHTML=tbar+banner+`<div class="empty">Nothing marked yet — hit &#43; Going on the Lineup tab.</div>`;return;}
   let out=tbar+banner;let show=DAYS;
   if(planView==='today'){if(tc){show=DAYS.filter(d=>d[0]===tc);}else{out+=`<div class="note" style="border-style:solid">The <b>Today</b> view comes alive during the festival (27&ndash;30 Aug) &mdash; showing all days for now.</div>`;}}
   const uns=mine.filter(a=>!days[a.name]);
@@ -286,9 +295,9 @@ function renderPlan(){const c=document.getElementById("plan");
   show.forEach(d=>{const da=mine.filter(a=>days[a.name]===d[0]).sort((x,y)=>tkey(x.name)-tkey(y.name)||y.tier-x.tier);
     const clash=new Set();for(let i=0;i<da.length;i++)for(let j=i+1;j<da.length;j++){if(times[da[i].name]&&times[da[j].name]&&Math.abs(tkey(da[i].name)-tkey(da[j].name))<60){clash.add(da[i].name);clash.add(da[j].name);}}
     out+=`<div class="dayhead">${d[1].split(" — ")[0]}</div><div class="daytheme">${d[1].split(" — ")[1]}</div>`;
-    out+=mealsLine(d[0]);
+    out+=mealsLine(d[0]);out+=activitiesLine(d[0]);
     if(clash.size)out+=`<div class="clashnote">&#9888; ${clash.size} acts clash here &mdash; sets within an hour of each other.</div>`;
-    out+=da.length?da.map(a=>planCard(a,clash.has(a.name))).join(""):`<div class="empty" style="padding:7px">— nothing yet —</div>`;});
+    out+=da.length?da.map(a=>planCard(a,clash.has(a.name))).join(""):((mealsLine(d[0])||activitiesLine(d[0]))?"":`<div class="empty" style="padding:7px">— nothing yet —</div>`);});
   c.innerHTML=out;}
 function vbox(x,y,w,h,name,fill,dark,l2){const cx=x+w/2,cy=y+h/2;
   const lbl=l2?`<text class="maptxt ${dark?'dk':''}" x="${cx}" y="${cy-2}" text-anchor="middle">${name}</text><text class="maptxt ${dark?'dk':''}" x="${cx}" y="${cy+11}" text-anchor="middle">${l2}</text>`:`<text class="maptxt ${dark?'dk':''}" x="${cx}" y="${cy+4}" text-anchor="middle">${name}</text>`;
@@ -321,10 +330,10 @@ function addMate(){const n=document.getElementById("mate").value.trim();const co
   try{const o=JSON.parse(atob(code));crew[n]={g:o.g||[],d:o.d||{},s:o.s||{}};S("shmb_crew",crew);renderCrew();}
   catch(e){alert("That code didn't read — check it copied fully.");}}
 function delMate(n){delete crew[n];S("shmb_crew",crew);renderCrew();}
-function copyCode(){const t=document.getElementById("mycode");t.select();try{document.execCommand("copy");}catch(e){}
+function copyCode(){if(going.size===0){alert("You haven't marked any acts as Going yet — tap + Going on a few first, then copy. An empty plan gives everyone the same code (that's the identical-code thing!).");return;}const t=document.getElementById("mycode");t.select();try{document.execCommand("copy");}catch(e){}
   try{navigator.clipboard.writeText(t.value);}catch(e){}alert("Your code's copied — send it to the crew.");}
 function renderCrew(){const c=document.getElementById("crew");
-  let h=`<div class="note"><b>Share your plan, no app needed.</b> Copy your code and send it to a mate; paste theirs in to see where you overlap. Works offline.</div>`;
+  let h=`<div class="note"><b>No logins, no profiles</b> &mdash; your code <i>is</i> your plan. Mark acts &#43; Going first, <b>then</b> copy your code and share it here. Anyone who hasn't marked anything yet has the <b>same empty code</b> &mdash; that's normal, not a bug! Paste a mate's code to see where you overlap.</div>`;
   h+=`<h3 class="sec">Your code</h3><textarea id="mycode" rows="3" readonly>${myCode()}</textarea><button class="big-btn" onclick="copyCode()">Copy my code</button>`;
   h+=`<h3 class="sec">Add a mate's code</h3><input class="field" id="mate" placeholder="Mate's name (e.g. Jamie)"><textarea id="matecode" rows="3" placeholder="Paste their code here"></textarea><button class="big-btn" onclick="addMate()">Add to crew</button>`;
   const names=Object.keys(crew);
@@ -453,16 +462,22 @@ function renderFood(){const c=document.getElementById("food");
 function allActs(){return EXPL.map(e=>({name:e[0],cat:e[1],kids:!!e[2],desc:e[3],user:false})).concat(userActs.map(a=>({name:a.name,cat:a.cat||"Oddities & Art",kids:!!a.kids,desc:a.desc||"Added by you",user:true})));}
 const ECATS=["All","Kids & Family","Wellness","Oddities & Art","Participatory"];
 function toggleExFav(n){exploreFav.has(n)?exploreFav.delete(n):exploreFav.add(n);S("shmb_exfav",[...exploreFav]);renderExplore();}
+function attendToggle(n){attend.has(n)?attend.delete(n):attend.add(n);S("shmb_attend",[...attend]);renderExplore();}
+function setADay(n,d){if(adays[n]===d)delete adays[n];else adays[n]=d;S("shmb_adays",adays);renderExplore();}
+function exExpand(n){exExpanded.has(n)?exExpanded.delete(n):exExpanded.add(n);renderExplore();}
 function addActivity(){const n=document.getElementById("aname").value.trim();if(!n)return;const cat=document.getElementById("acat").value;const k=document.getElementById("akids").checked;
  userActs.push({name:n,cat:cat,kids:k,desc:"Added by you"});S("shmb_useracts",userActs);renderExplore();}
 function delActivity(n){userActs=userActs.filter(a=>a.name!==n);S("shmb_useracts",userActs);renderExplore();}
-function ecard(a){const fav=exploreFav.has(a.name);
- return '<div class="fcard"><div class="av" style="background-color:#8338EC">'+esc(initials(a.name))+'</div><div class="cc">'
-  +'<div class="cn" style="display:flex;align-items:center;gap:6px">'+esc(a.name)+'<button class="fav '+(fav?'on':'')+'" onclick="toggleExFav(\''+jsq(a.name)+'\')">'+(fav?'&#9733;':'&#9734;')+'</button></div>'
-  +'<div class="cm"><span class="gpill">'+esc(a.cat)+'</span>'+(a.kids?' <span class="gpill" style="background:#0FBF9F;color:#fff">&#128118; kids OK</span>':'')+'</div>'
-  +(a.desc?'<div class="cd">'+esc(a.desc)+'</div>':'')
-  +(a.user?'<div class="cb"><button class="btn" onclick="delActivity(\''+jsq(a.name)+'\')">Remove</button></div>':'')
-  +'</div></div>';}
+function ecard(a){var fav=exploreFav.has(a.name),go=attend.has(a.name),ex=exExpanded.has(a.name),d=adays[a.name]||"";var nm=jsq(a.name);
+ var db=DAYS.map(function(x){return `<button class="dbtn ${d===x[0]?'on':''}" onclick="setADay('${nm}','${x[0]}')">${x[0]}</button>`;}).join("");
+ return `<div class="fcard"><div class="av" style="background-color:#8338EC" onclick="exExpand('${nm}')">${esc(initials(a.name))}</div><div class="cc">`
+  +`<div class="cn" style="display:flex;align-items:center;gap:6px"><span onclick="exExpand('${nm}')" style="cursor:pointer">${esc(a.name)}</span><button class="fav ${fav?'on':''}" onclick="toggleExFav('${nm}')">${fav?'&#9733;':'&#9734;'}</button></div>`
+  +`<div class="cm"><span class="gpill">${esc(a.cat)}</span>${a.kids?' <span class="gpill" style="background:#0FBF9F;color:#fff">&#128118; kids OK</span>':''}</div>`
+  +(a.desc?`<div class="cd">${esc(a.desc)}</div>`:'')
+  +`<div class="cb"><button class="btn go ${go?'on':''}" onclick="attendToggle('${nm}')">${go?'&#10003; Going':'&#43; Going'}</button><button class="btn" onclick="exExpand('${nm}')">${ex?'Less':'More'}</button>${a.user?`<button class="btn" onclick="delActivity('${nm}')">Remove</button>`:''}</div>`
+  +(ex?`<div class="expand"><div class="cd">${esc(a.desc||'')}</div><div class="nospot" style="margin-top:6px">Full workshop &amp; activity programme (with times &amp; exact spots) is in the official Shambala app.</div>${go?`<div class="cm" style="margin-top:8px">Add to a day (shows on By Day):</div><div class="days" style="margin-top:4px">${db}</div>`:''}</div>`:'')
+  +`</div></div>`;}
+
 function renderExplore(){const c=document.getElementById("explore");
  let h='<div class="vrow">'+ECATS.map(ct=>'<button class="chip v '+(exploreCat===ct?'on':'')+'" onclick="exploreCat=\''+jsq(ct)+'\';renderExplore()">'+esc(ct)+'</button>').join("")+'<button class="chip go '+(exploreKids?'on':'')+'" onclick="exploreKids=!exploreKids;renderExplore()">&#128118; Kids-friendly</button></div>';
  h+='<div class="note">Beyond the bands: family stuff, wellness, and Shambala\'s gloriously weird side. The full programme firms up on site - <b>spot a roaming oddity (last year\'s musical bee!)? Add it below.</b></div>';
@@ -494,6 +509,25 @@ function showIntro(){const o=document.getElementById("intro");
  o.style.display="";}
 function closeIntro(){S("shmb_intro",true);document.getElementById("intro").style.display="none";}
 try{
+function tkey2(t){var p=t.split(":");var h=+p[0],m=+p[1];if(h<6)h+=24;return h*60+m;}
+function fmt12(t){var p=t.split(":");var h=+p[0],m=p[1];var ap=h>=12?'pm':'am';var hh=h%12;if(hh===0)hh=12;return hh+':'+m+ap;}
+function toggleSchedFav(id){schedFav.has(id)?schedFav.delete(id):schedFav.add(id);S("shmb_schedfav",[...schedFav]);renderTimes();}
+function renderTimes(){var c=document.getElementById("times");
+ var DX=[["Thu","Thu 27"],["Fri","Fri 28"],["Sat","Sat 29"],["Sun","Sun 30"]];
+ var h='<div class="modebar">'+DX.map(function(d){return '<button class="chip '+(timesDay===d[0]?'all on':'')+'" onclick="timesDay=\''+d[0]+'\';timesStage=\'All\';renderTimes()">'+d[1]+'</button>';}).join('')+'</div>';
+ var dayItems=SCHED.filter(function(e){return e[0]===timesDay;});
+ if(!dayItems.length){c.innerHTML=h+'<div class="note"><b>'+timesDay+' isn\'t loaded yet.</b> Send the official Times list for this day (clear screenshots like the Thursday ones) and I\'ll add it.</div>';return;}
+ var stages=['All'];dayItems.forEach(function(e){if(stages.indexOf(e[2])<0)stages.push(e[2]);});
+ h+='<div class="vrow">'+stages.map(function(s){return '<button class="chip v '+(timesStage===s?'on':'')+'" onclick="timesStage=\''+jsq(s)+'\';renderTimes()">'+esc(s)+'</button>';}).join('')+'</div>';
+ h+='<div class="controls"><input placeholder="Search act, stage or genre..." value="'+esc(timesQ)+'" oninput="timesQ=this.value;renderTimes();this.focus()"><button class="chip seen '+(timesFav?'on':'')+'" onclick="timesFav=!timesFav;renderTimes()">&#9733; Mine</button></div>';
+ var q=timesQ.toLowerCase();
+ var list=dayItems.filter(function(e){var id=e[0]+'|'+e[1]+'|'+e[3];return (timesStage==='All'||e[2]===timesStage)&&(!timesFav||schedFav.has(id))&&(!q||(e[3]+' '+e[4]+' '+e[2]).toLowerCase().indexOf(q)>=0);});
+ list.sort(function(a,b){return tkey2(a[1])-tkey2(b[1])||a[2].localeCompare(b[2]);});
+ h+='<div class="note" style="padding:8px 12px">'+list.length+' sets &middot; official times. Tap &#9733; to save yours (then filter with <b>&#9733; Mine</b>).</div>';
+ h+=list.map(function(e){var id=e[0]+'|'+e[1]+'|'+e[3];var f=schedFav.has(id);
+   return '<div class="fcard"><div class="tcell">'+fmt12(e[1])+'</div><div class="cc"><div class="cn" style="display:flex;align-items:center;gap:6px;font-size:14px"><span>'+esc(e[3])+'</span><button class="fav '+(f?'on':'')+'" onclick="toggleSchedFav(\''+jsq(id)+'\')">'+(f?'&#9733;':'&#9734;')+'</button></div><div class="cm"><span class="v">'+esc(e[2])+'</span></div>'+(e[4]?'<div class="cd" style="font-size:10.5px;color:var(--mut)">'+esc(e[4])+'</div>':'')+'</div></div>';
+ }).join('');
+ c.innerHTML=h;}
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 refresh();
 if(!L("shmb_intro",false))showIntro();
